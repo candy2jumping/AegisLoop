@@ -8,6 +8,29 @@
 
 ---
 
+## 仓库目录速查（一句话说明每个目录）
+
+| 目录/文件 | 一句话作用 |
+|---|---|
+| `at/` | **★ 运行入口**：部署手册、创建 9 个 Agent 的消息模板、任务消息、Team 规格、环境变量样例 |
+| `agents/` | 9 个职能 Agent 的声明与实现（aegis-leader + 7 Worker + Human soc-lead） |
+| `souls/` | 9 个 Agent 的人设（SOUL） |
+| `skills/` | 13 个 Skill 的声明与实现 |
+| `contracts/` | 冻结契约：ARG 风险分级、ECP 证据分级、10 态状态机、Agent 间交接字段 |
+| `tools/` | Mock 工具网关：本地可跑，无需真实安全设备 |
+| `scenarios/` | 样例输入：横向移动攻击场景剧本 |
+| `domain/` | Tier-0 关键资产表与领域类型定义 |
+| `evidence/` | **★ 平台 A 线端到端实跑证据**（room-transcript.json，655 条对话） |
+| `evidence-supplement/prototype-bline/` | **★ B 线离线原型补充证据**（已如实分区标注） |
+| `knowledge/lessons/` | 经验沉淀输出样例 |
+| `schemas/` | IO Schema 定义 |
+| `docs/` | 设计文档与架构说明 |
+| `README.md` | 项目总说明（队友汇总，未改动） |
+| `SUBMISSION_GUIDE.md` | 本文件：提交导航 + 官方要求映射 |
+| `LICENSE` | MIT 开源协议 |
+
+---
+
 ## 一、赛事手册 §5.2 五项要求 → 本仓库文件映射
 
 ### 1. 运行入口（如何把它跑起来）
