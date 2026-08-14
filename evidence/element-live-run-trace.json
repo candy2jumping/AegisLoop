@@ -1,0 +1,1020 @@
+[
+  {
+    "time": "2026-08-07T19:47:38+08:00",
+    "tool": "mock_siem",
+    "function": "get_seed_signal",
+    "args": {},
+    "result_preview": "{\"severity\": \"medium\", \"source\": \"mock_siem.correlation\", \"tags\": [\"finance_host_smb_to_dc\", \"lsass_access\"], \"text\": \"弱信号：财务终端 10.20.3.17 在 02:09 向域控 10.0.0.8 发起 SMB 连接（ADMIN$），且该主机 02:06 出现针对 lsass.exe 的异常进程访问。单条不够立案，跨源同时出现则建议升格调查。\", \"..."
+  },
+  {
+    "time": "2026-08-07T19:47:40+08:00",
+    "tool": "mock_udb",
+    "function": "sanitize",
+    "args": {
+      "fields": {
+        "seed_text": "弱信号：财务终端 10.20.3.17 在 02:09 向域控 10.0.0.8 发起 SMB 连接（ADMIN$），且该主机 02:06 出现针对 lsass.exe 的异常进程访问。",
+        "source": "mock_siem.correlation",
+        "tags": [
+          "finance_host_smb_to_dc",
+          "lsass_access"
+        ],
+        "severity": "medium"
+      }
+    },
+    "result_preview": "{\"clean_fields\": {\"seed_text\": \"弱信号：财务终端 10.20.3.17 在 02:09 向域控 10.0.0.8 发起 SMB 连接（ADMIN$），且该主机 02:06 出现针对 lsass.exe 的异常进程访问。\", \"severity\": \"medium\", \"source\": \"mock_siem.correlation\", \"tags\": [\"finance_host_smb_to_dc\", \"lsass_access\"]},..."
+  },
+  {
+    "time": "2026-08-07T19:47:42+08:00",
+    "tool": "mock_siem",
+    "function": "list_alerts",
+    "args": {
+      "severity": null
+    },
+    "result_preview": "[{\"benign\": false, \"detail\": \"VPN 登录成功，IP 首次出现\", \"event_id\": 4624, \"host\": \"vpn-gateway\", \"logon_type\": 3, \"src_ip\": \"203.0.113.78\", \"time\": \"2026-07-28T02:03:41+08:00\", \"user\": \"zhang-san\"}, {\"benign\": false, \"detail\": \"财务终端访问域控管理共享\", \"..."
+  },
+  {
+    "time": "2026-08-07T19:47:49+08:00",
+    "tool": "mock_udb",
+    "function": "sanitize",
+    "args": {
+      "fields": {
+        "alerts": [
+          {
+            "event_id": 5140,
+            "user": "zhang-san",
+            "src": "10.20.3.17",
+            "dst": "10.0.0.8",
+            "share": "ADMIN$",
+            "detail": "财务终端访问域控管理共享",
+            "benign": false
+          },
+          {
+            "event_id": 7045,
+            "host": "report-srv-15",
+            "service": "PSEXESVC",
+            "detail": "新服务安装（PsExec 特征）",
+            "benign": false
+          },
+          {
+            "event_id": 4624,
+            "logon_type": 3,
+            "user": "zhang-san",
+            "src_ip": "10.20.3.17",
+            "host": "report-srv-15",
+            "detail": "网络登录（PsExec 会话）",
+            "benign": false
+          },
+          {
+            "event_id": 4698,
+            "host": "finance-ws-17",
+            "task": "WindowsUpdateCheck",
+            "detail": "计划任务创建（伪装系统更新）",
+            "benign": false
+          }
+        ]
+      }
+    },
+    "result_preview": "{\"clean_fields\": {\"alerts\": [{\"benign\": false, \"detail\": \"财务终端访问域控管理共享\", \"dst\": \"10.0.0.8\", \"event_id\": 5140, \"share\": \"ADMIN$\", \"src\": \"10.20.3.17\", \"user\": \"zhang-san\"}, {\"benign\": false, \"detail\": \"新服务安装（PsExec 特征）\", \"event_id\": 7045,..."
+  },
+  {
+    "time": "2026-08-07T19:47:57+08:00",
+    "tool": "mock_siem",
+    "function": "list_alerts",
+    "args": {
+      "severity": "high"
+    },
+    "result_preview": "[]"
+  },
+  {
+    "time": "2026-08-07T19:48:01+08:00",
+    "tool": "mock_edr",
+    "function": "process_access",
+    "args": {
+      "target": null,
+      "host": null
+    },
+    "result_preview": "[{\"benign\": false, \"detail\": \"LSASS 全权限访问（凭据转储特征，对齐 MITRE DET0363 / Sigma sysmon_lsass_memdump）\", \"event\": 10, \"granted_access\": \"0x1F0FFF\", \"host\": \"finance-ws-17\", \"ip\": \"10.20.3.17\", \"source_image\": \"C:\\\\Users\\\\zhang-san\\\\Downloads\\\\p..."
+  },
+  {
+    "time": "2026-08-07T19:48:01+08:00",
+    "tool": "mock_ndr",
+    "function": "flows",
+    "args": {
+      "src": null,
+      "dst": null,
+      "port": null,
+      "since": null,
+      "until": null
+    },
+    "result_preview": "[{\"benign\": false, \"bytes\": 1240, \"detail\": \"SMB ADMIN$ 探测（短连接）\", \"dst\": \"10.0.0.8\", \"port\": 445, \"protocol\": \"TCP\", \"src\": \"10.20.3.17\", \"time\": \"2026-07-28T02:09:12+08:00\"}, {\"benign\": false, \"bytes\": 8924, \"detail\": \"PsExec 服务写入与执行流量\"..."
+  },
+  {
+    "time": "2026-08-07T19:48:01+08:00",
+    "tool": "mock_ad",
+    "function": "account_info",
+    "args": {
+      "account": null
+    },
+    "result_preview": "[{\"account\": \"zhang-san\", \"dept\": \"财务部\", \"permissions\": \"VPN + 财务终端本地管理员；在 report-srv-15 上拥有本地管理员权限（最小权限缺陷）\", \"real_name\": \"张山\"}, {\"account\": \"report_reader\", \"dept\": \"系统\", \"permissions\": \"orders 库 users 表只读，历史日均查询约 180 行\", \"real_name\": ..."
+  },
+  {
+    "time": "2026-08-07T19:48:11+08:00",
+    "tool": "mock_ticket",
+    "function": "create_case",
+    "args": {
+      "seed": {
+        "time": "2026-07-28T02:09:12+08:00",
+        "source": "mock_siem.correlation",
+        "severity": "medium",
+        "text": "财务终端 10.20.3.17 向域控 10.0.0.8 SMB ADMIN$ + lsass.exe 异常访问",
+        "tags": [
+          "finance_host_smb_to_dc",
+          "lsass_access"
+        ]
+      }
+    },
+    "result_preview": "{\"case_id\": \"CASE-2001\", \"created_at\": \"2026-08-07T19:48:11+0800\", \"seed_signal\": {\"severity\": \"medium\", \"source\": \"mock_siem.correlation\", \"tags\": [\"finance_host_smb_to_dc\", \"lsass_access\"], \"text\": \"财务终端 10.20.3.17 向域控 10.0.0.8 SMB ADM..."
+  },
+  {
+    "time": "2026-08-07T19:48:11+08:00",
+    "tool": "mock_ticket",
+    "function": "update_case_status",
+    "args": {
+      "case_id": "CASE-2001",
+      "to": "TRIAGED",
+      "by": "triage",
+      "note": "分诊完成：跨源信号同时出现，判定为横向移动链，升格立案"
+    },
+    "result_preview": "{\"allowed\": true, \"status\": \"TRIAGED\", \"transition\": {\"by\": \"triage\", \"case_id\": \"CASE-2001\", \"from\": \"NEW\", \"note\": \"分诊完成：跨源信号同时出现，判定为横向移动链，升格立案\", \"to\": \"TRIAGED\", \"ts\": \"2026-08-07T19:48:11+0800\"}}"
+  },
+  {
+    "time": "2026-08-07T19:49:56+08:00",
+    "tool": "mock_udb",
+    "function": "sanitize",
+    "args": {
+      "fields": {
+        "case_id": "CASE-2001",
+        "claim": "zhang-san 经 VPN 登录后，在财务终端 10.20.3.17 上通过 procdump64.exe 对 lsass.exe 全权限访问；随后向域控 10.0.0.8 发起 SMB ADMIN$ 探测，并在 report-srv-15 (10.2.3.15) 安装 PSEXESVC 建立 PsExec 会话；report-srv-15 外连 203.0.113.78:443 C2 beacon 并持续向 10.5.0.20:1433 发起约 9.2GB SQL 批量查询",
+        "host_finance": "finance-ws-17",
+        "ip_finance": "10.20.3.17",
+        "host_report": "report-srv-15",
+        "ip_report": "10.2.3.15",
+        "ip_dc": "10.0.0.8",
+        "ip_c2": "203.0.113.78",
+        "ip_db": "10.5.0.20",
+        "user": "zhang-san",
+        "evt_4624_vpn": "02:03:41 zhang-san src 203.0.113.78",
+        "evt_lsass": "02:06:08 procdump64.exe→lsass.exe 0x1F0FFF",
+        "evt_4698": "02:07:55 finance-ws-17 计划任务 WindowsUpdateCheck",
+        "evt_5140": "02:09:12 zhang-san 10.20.3.17→10.0.0.8 ADMIN$",
+        "evt_7045": "02:09:31 report-srv-15 PSEXESVC 服务安装",
+        "evt_4624_psexec": "02:10:22 zhang-san src 10.20.3.17→report-srv-15",
+        "ndr_c2": "10.2.3.15→203.0.113.78:443 TLS 周期60s",
+        "ndr_sql": "10.2.3.15→10.5.0.20:1433 约9.2GB",
+        "note": "分诊 ECP 全量字段待清洗"
+      }
+    },
+    "result_preview": "{\"clean_fields\": {\"case_id\": \"CASE-2001\", \"claim\": \"zhang-san 经 VPN 登录后，在财务终端 10.20.3.17 上通过 procdump64.exe 对 lsass.exe 全权限访问；随后向域控 10.0.0.8 发起 SMB ADMIN$ 探测，并在 report-srv-15 (10.2.3.15) 安装 PSEXESVC 建立 PsExec 会话；report-srv-15 外连 203.0.11..."
+  },
+  {
+    "time": "2026-08-07T19:49:59+08:00",
+    "tool": "mock_edr",
+    "function": "process_tree",
+    "args": {
+      "host": "finance-ws-17",
+      "since": null,
+      "until": null
+    },
+    "result_preview": "[{\"benign\": true, \"command_line\": \"svchost.exe -k TermService\", \"detail\": \"RDP 会话建立\", \"event\": 1, \"host\": \"finance-ws-17\", \"image\": \"C:\\\\Windows\\\\System32\\\\svchost.exe\", \"ip\": \"10.20.3.17\", \"parent_pid\": 388, \"pid\": 4120, \"time\": \"2026-0..."
+  },
+  {
+    "time": "2026-08-07T19:49:59+08:00",
+    "tool": "mock_edr",
+    "function": "process_access",
+    "args": {
+      "target": null,
+      "host": "finance-ws-17"
+    },
+    "result_preview": "[{\"benign\": false, \"detail\": \"LSASS 全权限访问（凭据转储特征，对齐 MITRE DET0363 / Sigma sysmon_lsass_memdump）\", \"event\": 10, \"granted_access\": \"0x1F0FFF\", \"host\": \"finance-ws-17\", \"ip\": \"10.20.3.17\", \"source_image\": \"C:\\\\Users\\\\zhang-san\\\\Downloads\\\\p..."
+  },
+  {
+    "time": "2026-08-07T19:50:04+08:00",
+    "tool": "mock_edr",
+    "function": "network_connections",
+    "args": {
+      "host": "finance-ws-17",
+      "since": null,
+      "until": null
+    },
+    "result_preview": "[{\"benign\": false, \"dst\": \"10.0.0.8\", \"event\": 3, \"host\": \"finance-ws-17\", \"ip\": \"10.20.3.17\", \"port\": 445, \"protocol\": \"TCP\", \"src\": \"10.20.3.17\", \"time\": \"2026-07-28T02:09:28+08:00\"}]"
+  },
+  {
+    "time": "2026-08-07T19:50:04+08:00",
+    "tool": "mock_edr",
+    "function": "file_events",
+    "args": {
+      "host": "finance-ws-17"
+    },
+    "result_preview": "[{\"benign\": false, \"detail\": \"转储文件创建后约 33 秒被删除\", \"event\": 11, \"host\": \"finance-ws-17\", \"image\": \"C:\\\\Users\\\\zhang-san\\\\AppData\\\\Local\\\\Temp\\\\lsass.dmp\", \"ip\": \"10.20.3.17\", \"time\": \"2026-07-28T02:06:40+08:00\"}]"
+  },
+  {
+    "time": "2026-08-07T19:50:07+08:00",
+    "tool": "mock_edr",
+    "function": "process_tree",
+    "args": {
+      "host": "report-srv-15",
+      "since": null,
+      "until": null
+    },
+    "result_preview": "[{\"benign\": false, \"command_line\": \"PSEXESVC.exe\", \"event\": 1, \"host\": \"report-srv-15\", \"image\": \"C:\\\\Windows\\\\PSEXESVC.exe\", \"ip\": \"10.2.3.15\", \"parent_pid\": 4, \"pid\": 1902, \"time\": \"2026-07-28T02:09:31+08:00\"}, {\"benign\": false, \"comma..."
+  },
+  {
+    "time": "2026-08-07T19:50:07+08:00",
+    "tool": "mock_edr",
+    "function": "network_connections",
+    "args": {
+      "host": "report-srv-15",
+      "since": null,
+      "until": null
+    },
+    "result_preview": "[{\"benign\": false, \"dst\": \"203.0.113.78\", \"event\": 3, \"host\": \"report-srv-15\", \"ip\": \"10.2.3.15\", \"port\": 443, \"protocol\": \"TCP\", \"src\": \"10.2.3.15\", \"time\": \"2026-07-28T02:10:22+08:00\"}]"
+  },
+  {
+    "time": "2026-08-07T19:50:11+08:00",
+    "tool": "mock_edr",
+    "function": "process_access",
+    "args": {
+      "target": null,
+      "host": "report-srv-15"
+    },
+    "result_preview": "[]"
+  },
+  {
+    "time": "2026-08-07T19:50:11+08:00",
+    "tool": "mock_edr",
+    "function": "file_events",
+    "args": {
+      "host": "report-srv-15"
+    },
+    "result_preview": "[]"
+  },
+  {
+    "time": "2026-08-07T19:50:11+08:00",
+    "tool": "mock_intel",
+    "function": "lookup",
+    "args": {
+      "value": null
+    },
+    "result_preview": "[{\"benign\": false, \"confidence\": 0.87, \"kind\": \"ioc_ip\", \"source\": \"模拟威胁情报（参照真实 C2/代理基础设施）\", \"tags\": [\"proxy\", \"c2\"], \"time\": \"2026-07-28T09:05:00+08:00\", \"value\": \"203.0.113.78\"}, {\"benign\": false, \"confidence\": 0.91, \"kind\": \"ioc_domai..."
+  },
+  {
+    "time": "2026-08-07T19:50:11+08:00",
+    "tool": "mock_intel",
+    "function": "stealer_log",
+    "args": {
+      "account": null
+    },
+    "result_preview": "[{\"benign\": false, \"confidence\": 0.9, \"kind\": \"stealer_log\", \"source\": \"凭证泄露监控（模拟）\", \"time\": \"2026-07-27T09:14:00+08:00\", \"value\": \"RedLine 窃密日志含 zhang-san@corp 的 VPN 凭证与浏览器缓存\"}]"
+  },
+  {
+    "time": "2026-08-07T19:50:16+08:00",
+    "tool": "mock_dbaudit",
+    "function": "query_log",
+    "args": {
+      "user": null,
+      "table": null,
+      "since": null,
+      "until": null
+    },
+    "result_preview": "[{\"benign\": false, \"client_ip\": \"10.2.3.15\", \"db\": \"orders\", \"detail\": \"批量查询开始：单次 500 行、间隔 3 秒\", \"rows\": 500, \"sql\": \"SELECT TOP 500 * FROM users WHERE last_active > '2026-01-01'\", \"table\": \"users\", \"time\": \"2026-07-28T02:18:05+08:00\", \"..."
+  },
+  {
+    "time": "2026-08-07T19:50:16+08:00",
+    "tool": "mock_dbaudit",
+    "function": "baseline",
+    "args": {
+      "user": null,
+      "table": null
+    },
+    "result_preview": "[{\"daily_avg_rows\": 180, \"table\": \"users\", \"unit\": \"rows/day\", \"user\": \"report_reader\", \"window\": \"30d\"}, {\"daily_avg_rows\": 120, \"table\": \"order_summary\", \"unit\": \"rows/day\", \"user\": \"report_reader\", \"window\": \"30d\"}]"
+  },
+  {
+    "time": "2026-08-07T19:50:20+08:00",
+    "tool": "mock_ndr",
+    "function": "flows",
+    "args": {
+      "src": null,
+      "dst": null,
+      "port": null,
+      "since": null,
+      "until": null
+    },
+    "result_preview": "[{\"benign\": false, \"bytes\": 1240, \"detail\": \"SMB ADMIN$ 探测（短连接）\", \"dst\": \"10.0.0.8\", \"port\": 445, \"protocol\": \"TCP\", \"src\": \"10.20.3.17\", \"time\": \"2026-07-28T02:09:12+08:00\"}, {\"benign\": false, \"bytes\": 8924, \"detail\": \"PsExec 服务写入与执行流量\"..."
+  },
+  {
+    "time": "2026-08-07T19:50:20+08:00",
+    "tool": "mock_ndr",
+    "function": "flows",
+    "args": {
+      "src": "10.20.3.17",
+      "dst": "10.0.0.8",
+      "port": null,
+      "since": null,
+      "until": null
+    },
+    "result_preview": "[{\"benign\": false, \"bytes\": 1240, \"detail\": \"SMB ADMIN$ 探测（短连接）\", \"dst\": \"10.0.0.8\", \"port\": 445, \"protocol\": \"TCP\", \"src\": \"10.20.3.17\", \"time\": \"2026-07-28T02:09:12+08:00\"}]"
+  },
+  {
+    "time": "2026-08-07T19:50:20+08:00",
+    "tool": "mock_ad",
+    "function": "auth_log",
+    "args": {
+      "user": "zhang-san",
+      "ip": null,
+      "since": null,
+      "until": null
+    },
+    "result_preview": "[{\"benign\": false, \"detail\": \"VPN 认证成功，IP 首次出现\", \"event_id\": 4624, \"logon_type\": 3, \"src_ip\": \"203.0.113.78\", \"time\": \"2026-07-28T02:03:41+08:00\", \"user\": \"zhang-san\"}, {\"benign\": false, \"detail\": \"RDP 登录财务终端\", \"event_id\": 4624, \"host\": ..."
+  },
+  {
+    "time": "2026-08-07T19:50:26+08:00",
+    "tool": "mock_ndr",
+    "function": "flows",
+    "args": {
+      "src": null,
+      "dst": "203.0.113.78",
+      "port": null,
+      "since": null,
+      "until": null
+    },
+    "result_preview": "[{\"benign\": false, \"bytes\": 1840, \"detail\": \"C2 beacon 回连（周期约 60s）\", \"dst\": \"203.0.113.78\", \"port\": 443, \"protocol\": \"TLS\", \"src\": \"10.2.3.15\", \"time\": \"2026-07-28T02:10:22+08:00\"}]"
+  },
+  {
+    "time": "2026-08-07T19:50:26+08:00",
+    "tool": "mock_siem",
+    "function": "search_events",
+    "args": {
+      "event_id": null,
+      "host": "10.20.3.17",
+      "user": null,
+      "since": null,
+      "until": null
+    },
+    "result_preview": "[{\"benign\": false, \"detail\": \"计划任务创建（伪装系统更新）\", \"event_id\": 4698, \"host\": \"finance-ws-17\", \"ip\": \"10.20.3.17\", \"task\": \"WindowsUpdateCheck\", \"time\": \"2026-07-28T02:07:55+08:00\"}]"
+  },
+  {
+    "time": "2026-08-07T19:50:26+08:00",
+    "tool": "mock_siem",
+    "function": "search_events",
+    "args": {
+      "event_id": null,
+      "host": "finance-ws-17",
+      "user": null,
+      "since": null,
+      "until": null
+    },
+    "result_preview": "[{\"benign\": false, \"detail\": \"计划任务创建（伪装系统更新）\", \"event_id\": 4698, \"host\": \"finance-ws-17\", \"ip\": \"10.20.3.17\", \"task\": \"WindowsUpdateCheck\", \"time\": \"2026-07-28T02:07:55+08:00\"}]"
+  },
+  {
+    "time": "2026-08-07T19:50:29+08:00",
+    "tool": "mock_siem",
+    "function": "search_events",
+    "args": {
+      "event_id": null,
+      "host": "10.20.3.17",
+      "user": null,
+      "since": null,
+      "until": null
+    },
+    "result_preview": "[{\"benign\": false, \"detail\": \"计划任务创建（伪装系统更新）\", \"event_id\": 4698, \"host\": \"finance-ws-17\", \"ip\": \"10.20.3.17\", \"task\": \"WindowsUpdateCheck\", \"time\": \"2026-07-28T02:07:55+08:00\"}]"
+  },
+  {
+    "time": "2026-08-07T19:50:29+08:00",
+    "tool": "mock_ad",
+    "function": "account_info",
+    "args": {
+      "account": null
+    },
+    "result_preview": "[{\"account\": \"zhang-san\", \"dept\": \"财务部\", \"permissions\": \"VPN + 财务终端本地管理员；在 report-srv-15 上拥有本地管理员权限（最小权限缺陷）\", \"real_name\": \"张山\"}, {\"account\": \"report_reader\", \"dept\": \"系统\", \"permissions\": \"orders 库 users 表只读，历史日均查询约 180 行\", \"real_name\": ..."
+  },
+  {
+    "time": "2026-08-07T19:50:32+08:00",
+    "tool": "mock_siem",
+    "function": "search_events",
+    "args": {
+      "event_id": null,
+      "host": "10.20.3.17",
+      "user": null,
+      "since": null,
+      "until": null
+    },
+    "result_preview": "[{\"benign\": false, \"detail\": \"计划任务创建（伪装系统更新）\", \"event_id\": 4698, \"host\": \"finance-ws-17\", \"ip\": \"10.20.3.17\", \"task\": \"WindowsUpdateCheck\", \"time\": \"2026-07-28T02:07:55+08:00\"}]"
+  },
+  {
+    "time": "2026-08-07T19:50:32+08:00",
+    "tool": "mock_siem",
+    "function": "get_seed_signal",
+    "args": {},
+    "result_preview": "{\"severity\": \"medium\", \"source\": \"mock_siem.correlation\", \"tags\": [\"finance_host_smb_to_dc\", \"lsass_access\"], \"text\": \"弱信号：财务终端 10.20.3.17 在 02:09 向域控 10.0.0.8 发起 SMB 连接（ADMIN$），且该主机 02:06 出现针对 lsass.exe 的异常进程访问。单条不够立案，跨源同时出现则建议升格调查。\", \"..."
+  },
+  {
+    "time": "2026-08-07T19:50:32+08:00",
+    "tool": "mock_siem",
+    "function": "list_alerts",
+    "args": {
+      "severity": null
+    },
+    "result_preview": "[{\"benign\": false, \"detail\": \"VPN 登录成功，IP 首次出现\", \"event_id\": 4624, \"host\": \"vpn-gateway\", \"logon_type\": 3, \"src_ip\": \"203.0.113.78\", \"time\": \"2026-07-28T02:03:41+08:00\", \"user\": \"zhang-san\"}, {\"benign\": false, \"detail\": \"财务终端访问域控管理共享\", \"..."
+  },
+  {
+    "time": "2026-08-07T19:50:40+08:00",
+    "tool": "mock_evidence",
+    "function": "snapshot",
+    "args": {
+      "refs": [
+        "siem:event_4624_vpn_gateway(02:03:41, zhang-san, src 203.0.113.78, IP 首次出现)",
+        "siem:event_4624_rdp_finance(02:04:12, zhang-san, src 10.200.0.15, finance-ws-17, logon_type 10)",
+        "edr:proc_procdump64(02:06:07, finance-ws-17, pid 6204 ppid 2312, C:\\Users\\zhang-san\\Downloads\\procdump64.exe -ma lsass.exe)",
+        "edr:process_access_lsass(02:06:08, finance-ws-17, procdump64.exe→lsass.exe 0x1F0FFF, MITRE DET0363/Sigma sysmon_lsass_memdump)",
+        "edr:file_lsass_dmp(02:06:40, finance-ws-17, C:\\Users\\zhang-san\\AppData\\Local\\Temp\\lsass.dmp 创建后33秒删除)",
+        "edr:proc_schtasks(02:07:55, finance-ws-17, pid 7150 ppid 6204, schtasks.exe /create /tn WindowsUpdateCheck /tr C:\\ProgramData\\updater.exe /sc onlogon)",
+        "siem:event_4698_schtask(02:07:55, finance-ws-17, 计划任务 WindowsUpdateCheck 伪装系统更新)",
+        "siem:event_5140_finance_to_dc(02:09:12, zhang-san, 10.20.3.17→10.0.0.8, ADMIN$)",
+        "ndr:flow_smb_admin_dc(02:09:12, 10.20.3.17→10.0.0.8:445, 1240 bytes 短连接探测)",
+        "ndr:flow_psexec(02:09:31, 10.20.3.17→10.2.3.15:445, 8924 bytes PsExec 服务写入与执行流量)",
+        "siem:event_7045_report_srv(02:09:31, report-srv-15, PSEXESVC C:\\Windows\\PSEXESVC.exe 服务安装)",
+        "edr:proc_psexesvc(02:09:31, report-srv-15, pid 1902 ppid 4, C:\\Windows\\PSEXESVC.exe)",
+        "ad:event_4672_special_priv(02:09:31, zhang-san, report-srv-15, PsExec 管理员权限)",
+        "edr:proc_updater(02:10:20, report-srv-15, pid 3344 ppid 1902, C:\\ProgramData\\updater.exe)",
+        "siem:event_4624_psexec_session(02:10:22, zhang-san, src 10.20.3.17→report-srv-15, 网络登录 PsExec 会话)",
+        "ndr:flow_c2_beacon(02:10:22, 10.2.3.15→203.0.113.78:443 TLS, 1840 bytes, 周期约60s)",
+        "edr:proc_sqlcmd(02:18:05, report-srv-15, pid 4501 ppid 3344, sqlcmd.exe -S db-orders -U report_reader -d orders SELECT users)",
+        "ndr:flow_sql_exfil(02:18:05, 10.2.3.15→10.5.0.20:1433, 02:18-08:35 累计约9.2GB)",
+        "dbaudit:query_log(02:18:05-08:35, report_reader, orders.users, 累计3,600,000行, 基线偏离2万倍)",
+        "dbaudit:baseline(orders.users 日均180行, 30d)",
+        "intel:ioc_ip(203.0.113.78, tags proxy/c2, confidence 0.87)",
+        "intel:ioc_domain(updater-cdn.example.net, malicious_domain/c2_dns, confidence 0.91)",
+        "intel:stealer_log(RedLine 窃密日志含 zhang-san@corp VPN 凭证与浏览器缓存, confidence 0.9)",
+        "intel:file_hash(updater.exe e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855, confidence 0.8)",
+        "ad:account_zhang-san(财务部, VPN+财务终端本地管理员, report-srv-15 本地管理员权限[最小权限缺陷])",
+        "ad:account_report_reader(报表只读应用账号, orders.users 只读)"
+      ]
+    },
+    "result_preview": "[]"
+  },
+  {
+    "time": "2026-08-07T19:50:43+08:00",
+    "tool": "mock_ticket",
+    "function": "update_case_status",
+    "args": {
+      "case_id": "CASE-2001",
+      "to": "INVESTIGATING",
+      "by": "hunter",
+      "note": "证据快照完成"
+    },
+    "result_preview": "{\"allowed\": true, \"status\": \"INVESTIGATING\", \"transition\": {\"by\": \"hunter\", \"case_id\": \"CASE-2001\", \"from\": \"TRIAGED\", \"note\": \"证据快照完成\", \"to\": \"INVESTIGATING\", \"ts\": \"2026-08-07T19:50:43+0800\"}}"
+  },
+  {
+    "time": "2026-08-07T19:52:21+08:00",
+    "tool": "mock_udb",
+    "function": "sanitize",
+    "args": {
+      "fields": {
+        "snapshot_claim": "zhang-san 凭证经 RedLine 窃密日志泄露（203.0.113.78 C2）→ VPN → RDP finance-ws-17 → procdump64 lsass → schtasks WindowsUpdateCheck updater.exe → SMB ADMIN$ 域控 10.0.0.8 → PsExec report-srv-15 PSEXESVC → C2 beacon 203.0.113.78:443 → report_reader 拖库 orders.users 9.2GB",
+        "stealer_log": "RedLine 窃密日志含 zhang-san@corp VPN 凭证与浏览器缓存, confidence 0.9",
+        "ioc_ip": "203.0.113.78 tags [proxy,c2] confidence 0.87",
+        "ioc_domain": "updater-cdn.example.net tags [malicious_domain,c2_dns] confidence 0.91",
+        "ioc_file_hash": "updater.exe e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855 confidence 0.8",
+        "proc_cmd": "C:/Users/zhang-san/Downloads/procdump64.exe -ma lsass.exe",
+        "schtask_cmd": "schtasks.exe /create /tn WindowsUpdateCheck /tr C:/ProgramData/updater.exe /sc onlogon",
+        "db_query_note": "report_reader 向 orders.users 批量 SQL 查询 3,600,000 行 9.2GB"
+      }
+    },
+    "result_preview": "{\"clean_fields\": {\"db_query_note\": \"report_reader 向 orders.users 批量 SQL 查询 3,600,000 行 9.2GB\", \"ioc_domain\": \"updater-cdn.example.net tags [malicious_domain,c2_dns] confidence 0.91\", \"ioc_file_hash\": \"updater.exe e3b0c44298fc1c149afbf4c8..."
+  },
+  {
+    "time": "2026-08-07T19:52:33+08:00",
+    "tool": "mock_intel",
+    "function": "stealer_log",
+    "args": {
+      "account": "zhang-san"
+    },
+    "result_preview": "[{\"benign\": false, \"confidence\": 0.9, \"kind\": \"stealer_log\", \"source\": \"凭证泄露监控（模拟）\", \"time\": \"2026-07-27T09:14:00+08:00\", \"value\": \"RedLine 窃密日志含 zhang-san@corp 的 VPN 凭证与浏览器缓存\"}]"
+  },
+  {
+    "time": "2026-08-07T19:52:34+08:00",
+    "tool": "mock_intel",
+    "function": "lookup",
+    "args": {
+      "value": "203.0.113.78"
+    },
+    "result_preview": "[{\"benign\": false, \"confidence\": 0.87, \"kind\": \"ioc_ip\", \"source\": \"模拟威胁情报（参照真实 C2/代理基础设施）\", \"tags\": [\"proxy\", \"c2\"], \"time\": \"2026-07-28T09:05:00+08:00\", \"value\": \"203.0.113.78\"}]"
+  },
+  {
+    "time": "2026-08-07T19:52:36+08:00",
+    "tool": "mock_intel",
+    "function": "lookup",
+    "args": {
+      "value": "updater-cdn.example.net"
+    },
+    "result_preview": "[{\"benign\": false, \"confidence\": 0.91, \"kind\": \"ioc_domain\", \"source\": \"模拟威胁情报\", \"tags\": [\"malicious_domain\", \"c2_dns\"], \"time\": \"2026-07-28T09:05:00+08:00\", \"value\": \"updater-cdn.example.net\"}]"
+  },
+  {
+    "time": "2026-08-07T19:52:36+08:00",
+    "tool": "mock_ad",
+    "function": "account_info",
+    "args": {
+      "account": "zhang-san"
+    },
+    "result_preview": "[{\"account\": \"zhang-san\", \"dept\": \"财务部\", \"permissions\": \"VPN + 财务终端本地管理员；在 report-srv-15 上拥有本地管理员权限（最小权限缺陷）\", \"real_name\": \"张山\"}]"
+  },
+  {
+    "time": "2026-08-07T19:52:38+08:00",
+    "tool": "mock_ad",
+    "function": "auth_log",
+    "args": {
+      "user": "zhang-san",
+      "ip": null,
+      "since": null,
+      "until": null
+    },
+    "result_preview": "[{\"benign\": false, \"detail\": \"VPN 认证成功，IP 首次出现\", \"event_id\": 4624, \"logon_type\": 3, \"src_ip\": \"203.0.113.78\", \"time\": \"2026-07-28T02:03:41+08:00\", \"user\": \"zhang-san\"}, {\"benign\": false, \"detail\": \"RDP 登录财务终端\", \"event_id\": 4624, \"host\": ..."
+  },
+  {
+    "time": "2026-08-07T19:52:38+08:00",
+    "tool": "mock_ad",
+    "function": "auth_log",
+    "args": {
+      "user": null,
+      "ip": "203.0.113.78",
+      "since": null,
+      "until": null
+    },
+    "result_preview": "[{\"benign\": false, \"detail\": \"VPN 认证成功，IP 首次出现\", \"event_id\": 4624, \"logon_type\": 3, \"src_ip\": \"203.0.113.78\", \"time\": \"2026-07-28T02:03:41+08:00\", \"user\": \"zhang-san\"}]"
+  },
+  {
+    "time": "2026-08-07T19:52:39+08:00",
+    "tool": "mock_ndr",
+    "function": "flows",
+    "args": {
+      "src": "10.20.3.17",
+      "dst": null,
+      "port": null,
+      "since": null,
+      "until": null
+    },
+    "result_preview": "[{\"benign\": false, \"bytes\": 1240, \"detail\": \"SMB ADMIN$ 探测（短连接）\", \"dst\": \"10.0.0.8\", \"port\": 445, \"protocol\": \"TCP\", \"src\": \"10.20.3.17\", \"time\": \"2026-07-28T02:09:12+08:00\"}, {\"benign\": false, \"bytes\": 8924, \"detail\": \"PsExec 服务写入与执行流量\"..."
+  },
+  {
+    "time": "2026-08-07T19:52:39+08:00",
+    "tool": "mock_ndr",
+    "function": "flows",
+    "args": {
+      "src": null,
+      "dst": "203.0.113.78",
+      "port": null,
+      "since": null,
+      "until": null
+    },
+    "result_preview": "[{\"benign\": false, \"bytes\": 1840, \"detail\": \"C2 beacon 回连（周期约 60s）\", \"dst\": \"203.0.113.78\", \"port\": 443, \"protocol\": \"TLS\", \"src\": \"10.2.3.15\", \"time\": \"2026-07-28T02:10:22+08:00\"}]"
+  },
+  {
+    "time": "2026-08-07T19:52:41+08:00",
+    "tool": "mock_dbaudit",
+    "function": "query_log",
+    "args": {
+      "user": "report_reader",
+      "table": null,
+      "since": null,
+      "until": null
+    },
+    "result_preview": "[{\"benign\": false, \"client_ip\": \"10.2.3.15\", \"db\": \"orders\", \"detail\": \"批量查询开始：单次 500 行、间隔 3 秒\", \"rows\": 500, \"sql\": \"SELECT TOP 500 * FROM users WHERE last_active > '2026-01-01'\", \"table\": \"users\", \"time\": \"2026-07-28T02:18:05+08:00\", \"..."
+  },
+  {
+    "time": "2026-08-07T19:52:41+08:00",
+    "tool": "mock_dbaudit",
+    "function": "baseline",
+    "args": {
+      "user": null,
+      "table": "orders.users"
+    },
+    "result_preview": "[]"
+  },
+  {
+    "time": "2026-08-07T19:52:43+08:00",
+    "tool": "mock_dbaudit",
+    "function": "baseline",
+    "args": {
+      "user": null,
+      "table": "users"
+    },
+    "result_preview": "[{\"daily_avg_rows\": 180, \"table\": \"users\", \"unit\": \"rows/day\", \"user\": \"report_reader\", \"window\": \"30d\"}]"
+  },
+  {
+    "time": "2026-08-07T19:52:43+08:00",
+    "tool": "mock_siem",
+    "function": "search_events",
+    "args": {
+      "event_id": "7045",
+      "host": null,
+      "user": null,
+      "since": null,
+      "until": null
+    },
+    "result_preview": "[{\"benign\": false, \"detail\": \"新服务安装（PsExec 特征）\", \"event_id\": 7045, \"host\": \"report-srv-15\", \"image\": \"C:\\\\Windows\\\\PSEXESVC.exe\", \"ip\": \"10.2.3.15\", \"service\": \"PSEXESVC\", \"time\": \"2026-07-28T02:09:31+08:00\"}]"
+  },
+  {
+    "time": "2026-08-07T19:52:45+08:00",
+    "tool": "mock_siem",
+    "function": "search_events",
+    "args": {
+      "event_id": null,
+      "host": "finance-ws-17",
+      "user": null,
+      "since": null,
+      "until": null
+    },
+    "result_preview": "[{\"benign\": false, \"detail\": \"计划任务创建（伪装系统更新）\", \"event_id\": 4698, \"host\": \"finance-ws-17\", \"ip\": \"10.20.3.17\", \"task\": \"WindowsUpdateCheck\", \"time\": \"2026-07-28T02:07:55+08:00\"}]"
+  },
+  {
+    "time": "2026-08-07T19:52:45+08:00",
+    "tool": "mock_siem",
+    "function": "search_events",
+    "args": {
+      "event_id": null,
+      "host": "report-srv-15",
+      "user": null,
+      "since": null,
+      "until": null
+    },
+    "result_preview": "[{\"benign\": false, \"detail\": \"新服务安装（PsExec 特征）\", \"event_id\": 7045, \"host\": \"report-srv-15\", \"image\": \"C:\\\\Windows\\\\PSEXESVC.exe\", \"ip\": \"10.2.3.15\", \"service\": \"PSEXESVC\", \"time\": \"2026-07-28T02:09:31+08:00\"}, {\"benign\": false, \"detail\":..."
+  },
+  {
+    "time": "2026-08-07T19:52:49+08:00",
+    "tool": "mock_ndr",
+    "function": "flows",
+    "args": {
+      "src": "10.2.3.15",
+      "dst": null,
+      "port": null,
+      "since": null,
+      "until": null
+    },
+    "result_preview": "[{\"benign\": false, \"bytes\": 1840, \"detail\": \"C2 beacon 回连（周期约 60s）\", \"dst\": \"203.0.113.78\", \"port\": 443, \"protocol\": \"TLS\", \"src\": \"10.2.3.15\", \"time\": \"2026-07-28T02:10:22+08:00\"}, {\"benign\": false, \"bytes\": 9670000000, \"detail\": \"SQL 批..."
+  },
+  {
+    "time": "2026-08-07T19:52:49+08:00",
+    "tool": "mock_ad",
+    "function": "account_info",
+    "args": {
+      "account": "report_reader"
+    },
+    "result_preview": "[{\"account\": \"report_reader\", \"dept\": \"系统\", \"permissions\": \"orders 库 users 表只读，历史日均查询约 180 行\", \"real_name\": \"报表只读应用账号\"}]"
+  },
+  {
+    "time": "2026-08-07T19:52:49+08:00",
+    "tool": "mock_intel",
+    "function": "lookup",
+    "args": {
+      "value": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "result_preview": "[{\"benign\": false, \"confidence\": 0.8, \"kind\": \"file_hash\", \"source\": \"样本分析（模拟）\", \"tags\": [\"updater.exe\"], \"time\": \"2026-07-28T09:05:00+08:00\", \"value\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\"}]"
+  },
+  {
+    "time": "2026-08-07T19:52:51+08:00",
+    "tool": "mock_siem",
+    "function": "search_events",
+    "args": {
+      "event_id": "4688",
+      "host": null,
+      "user": null,
+      "since": null,
+      "until": null
+    },
+    "result_preview": "[{\"benign\": true, \"detail\": \"备份任务例行进程\", \"event_id\": 4688, \"host\": \"report-srv-15\", \"ip\": \"10.2.3.15\", \"time\": \"2026-07-28T03:14:00+08:00\", \"user\": \"svc-backup\"}]"
+  },
+  {
+    "time": "2026-08-07T19:52:51+08:00",
+    "tool": "mock_ndr",
+    "function": "flows",
+    "args": {
+      "src": null,
+      "dst": "10.5.0.20",
+      "port": null,
+      "since": null,
+      "until": null
+    },
+    "result_preview": "[{\"benign\": false, \"bytes\": 9670000000, \"detail\": \"SQL 批量查询流量（02:18–08:35 累计约 9.2GB）\", \"dst\": \"10.5.0.20\", \"port\": 1433, \"protocol\": \"TCP\", \"src\": \"10.2.3.15\", \"time\": \"2026-07-28T02:18:05+08:00\"}]"
+  },
+  {
+    "time": "2026-08-07T19:52:55+08:00",
+    "tool": "mock_ndr",
+    "function": "flows",
+    "args": {
+      "src": null,
+      "dst": "10.0.0.8",
+      "port": null,
+      "since": null,
+      "until": null
+    },
+    "result_preview": "[{\"benign\": false, \"bytes\": 1240, \"detail\": \"SMB ADMIN$ 探测（短连接）\", \"dst\": \"10.0.0.8\", \"port\": 445, \"protocol\": \"TCP\", \"src\": \"10.20.3.17\", \"time\": \"2026-07-28T02:09:12+08:00\"}]"
+  },
+  {
+    "time": "2026-08-07T19:52:55+08:00",
+    "tool": "mock_ad",
+    "function": "auth_log",
+    "args": {
+      "user": "report_reader",
+      "ip": null,
+      "since": null,
+      "until": null
+    },
+    "result_preview": "[]"
+  },
+  {
+    "time": "2026-08-07T19:52:58+08:00",
+    "tool": "mock_siem",
+    "function": "search_events",
+    "args": {
+      "event_id": null,
+      "host": "dc-01",
+      "user": null,
+      "since": null,
+      "until": null
+    },
+    "result_preview": "[]"
+  },
+  {
+    "time": "2026-08-07T19:52:58+08:00",
+    "tool": "mock_siem",
+    "function": "search_events",
+    "args": {
+      "event_id": null,
+      "host": null,
+      "user": "zhang-san",
+      "since": null,
+      "until": null
+    },
+    "result_preview": "[{\"benign\": false, \"detail\": \"VPN 登录成功，IP 首次出现\", \"event_id\": 4624, \"host\": \"vpn-gateway\", \"logon_type\": 3, \"src_ip\": \"203.0.113.78\", \"time\": \"2026-07-28T02:03:41+08:00\", \"user\": \"zhang-san\"}, {\"benign\": false, \"detail\": \"财务终端访问域控管理共享\", \"..."
+  },
+  {
+    "time": "2026-08-07T19:53:01+08:00",
+    "tool": "mock_edr",
+    "function": "process_tree",
+    "args": {
+      "host": "finance-ws-17",
+      "since": null,
+      "until": null
+    },
+    "result_preview": "[{\"benign\": true, \"command_line\": \"svchost.exe -k TermService\", \"detail\": \"RDP 会话建立\", \"event\": 1, \"host\": \"finance-ws-17\", \"image\": \"C:\\\\Windows\\\\System32\\\\svchost.exe\", \"ip\": \"10.20.3.17\", \"parent_pid\": 388, \"pid\": 4120, \"time\": \"2026-0..."
+  },
+  {
+    "time": "2026-08-07T19:53:01+08:00",
+    "tool": "mock_intel",
+    "function": "stealer_log",
+    "args": {
+      "account": "report_reader"
+    },
+    "result_preview": "[]"
+  },
+  {
+    "time": "2026-08-07T19:53:04+08:00",
+    "tool": "mock_edr",
+    "function": "file_events",
+    "args": {
+      "host": "finance-ws-17"
+    },
+    "result_preview": "[{\"benign\": false, \"detail\": \"转储文件创建后约 33 秒被删除\", \"event\": 11, \"host\": \"finance-ws-17\", \"image\": \"C:\\\\Users\\\\zhang-san\\\\AppData\\\\Local\\\\Temp\\\\lsass.dmp\", \"ip\": \"10.20.3.17\", \"time\": \"2026-07-28T02:06:40+08:00\"}]"
+  },
+  {
+    "time": "2026-08-07T19:53:04+08:00",
+    "tool": "mock_ndr",
+    "function": "flows",
+    "args": {
+      "src": "203.0.113.78",
+      "dst": null,
+      "port": null,
+      "since": null,
+      "until": null
+    },
+    "result_preview": "[]"
+  },
+  {
+    "time": "2026-08-07T19:54:03+08:00",
+    "tool": "mock_ticket",
+    "function": "update_case_status",
+    "args": {
+      "case_id": "CASE-2001",
+      "to": "VERDICT_PENDING",
+      "by": "correlator",
+      "note": "实体图完成"
+    },
+    "result_preview": "{\"allowed\": true, \"status\": \"VERDICT_PENDING\", \"transition\": {\"by\": \"correlator\", \"case_id\": \"CASE-2001\", \"from\": \"INVESTIGATING\", \"note\": \"实体图完成\", \"to\": \"VERDICT_PENDING\", \"ts\": \"2026-08-07T19:54:03+0800\"}}"
+  },
+  {
+    "time": "2026-08-07T19:55:13+08:00",
+    "tool": "mock_udb",
+    "function": "sanitize",
+    "args": {
+      "fields": {
+        "host": "report-srv-15",
+        "src_ip": "10.2.3.15",
+        "dst_ip": "203.0.113.78",
+        "account": "zhang-san",
+        "query": "SELECT * FROM orders.users",
+        "task_name": "WindowsUpdateCheck",
+        "c2_beacon": "report-srv-15 → 203.0.113.78:443 TLS 周期60s",
+        "sql_volume": "3600000 rows / 9.2GB"
+      }
+    },
+    "result_preview": "{\"clean_fields\": {\"account\": \"zhang-san\", \"c2_beacon\": \"report-srv-15 → 203.0.113.78:443 TLS 周期60s\", \"dst_ip\": \"203.0.113.78\", \"host\": \"report-srv-15\", \"query\": \"SELECT * FROM orders.users\", \"sql_volume\": \"3600000 rows / 9.2GB\", \"src_ip\"..."
+  },
+  {
+    "time": "2026-08-07T19:55:19+08:00",
+    "tool": "mock_intel",
+    "function": "lookup",
+    "args": {
+      "value": "203.0.113.78"
+    },
+    "result_preview": "[{\"benign\": false, \"confidence\": 0.87, \"kind\": \"ioc_ip\", \"source\": \"模拟威胁情报（参照真实 C2/代理基础设施）\", \"tags\": [\"proxy\", \"c2\"], \"time\": \"2026-07-28T09:05:00+08:00\", \"value\": \"203.0.113.78\"}]"
+  },
+  {
+    "time": "2026-08-07T19:55:19+08:00",
+    "tool": "mock_intel",
+    "function": "lookup",
+    "args": {
+      "value": "updater-cdn.example.net"
+    },
+    "result_preview": "[{\"benign\": false, \"confidence\": 0.91, \"kind\": \"ioc_domain\", \"source\": \"模拟威胁情报\", \"tags\": [\"malicious_domain\", \"c2_dns\"], \"time\": \"2026-07-28T09:05:00+08:00\", \"value\": \"updater-cdn.example.net\"}]"
+  },
+  {
+    "time": "2026-08-07T19:55:19+08:00",
+    "tool": "mock_intel",
+    "function": "lookup",
+    "args": {
+      "value": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+    },
+    "result_preview": "[{\"benign\": false, \"confidence\": 0.8, \"kind\": \"file_hash\", \"source\": \"样本分析（模拟）\", \"tags\": [\"updater.exe\"], \"time\": \"2026-07-28T09:05:00+08:00\", \"value\": \"e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855\"}]"
+  },
+  {
+    "time": "2026-08-07T19:55:19+08:00",
+    "tool": "mock_siem",
+    "function": "search_events",
+    "args": {
+      "event_id": null,
+      "host": null,
+      "user": null,
+      "since": null,
+      "until": null
+    },
+    "result_preview": "[{\"benign\": false, \"detail\": \"VPN 登录成功，IP 首次出现\", \"event_id\": 4624, \"host\": \"vpn-gateway\", \"logon_type\": 3, \"src_ip\": \"203.0.113.78\", \"time\": \"2026-07-28T02:03:41+08:00\", \"user\": \"zhang-san\"}, {\"benign\": false, \"detail\": \"财务终端访问域控管理共享\", \"..."
+  },
+  {
+    "time": "2026-08-07T19:55:19+08:00",
+    "tool": "mock_edr",
+    "function": "process_tree",
+    "args": {
+      "host": "finance-ws-17",
+      "since": null,
+      "until": null
+    },
+    "result_preview": "[{\"benign\": true, \"command_line\": \"svchost.exe -k TermService\", \"detail\": \"RDP 会话建立\", \"event\": 1, \"host\": \"finance-ws-17\", \"image\": \"C:\\\\Windows\\\\System32\\\\svchost.exe\", \"ip\": \"10.20.3.17\", \"parent_pid\": 388, \"pid\": 4120, \"time\": \"2026-0..."
+  },
+  {
+    "time": "2026-08-07T19:55:27+08:00",
+    "tool": "mock_ndr",
+    "function": "flows",
+    "args": {
+      "src": "10.2.3.15",
+      "dst": null,
+      "port": null,
+      "since": null,
+      "until": null
+    },
+    "result_preview": "[{\"benign\": false, \"bytes\": 1840, \"detail\": \"C2 beacon 回连（周期约 60s）\", \"dst\": \"203.0.113.78\", \"port\": 443, \"protocol\": \"TLS\", \"src\": \"10.2.3.15\", \"time\": \"2026-07-28T02:10:22+08:00\"}, {\"benign\": false, \"bytes\": 9670000000, \"detail\": \"SQL 批..."
+  },
+  {
+    "time": "2026-08-07T19:55:27+08:00",
+    "tool": "mock_dbaudit",
+    "function": "query_log",
+    "args": {
+      "user": "report_reader",
+      "table": null,
+      "since": null,
+      "until": null
+    },
+    "result_preview": "[{\"benign\": false, \"client_ip\": \"10.2.3.15\", \"db\": \"orders\", \"detail\": \"批量查询开始：单次 500 行、间隔 3 秒\", \"rows\": 500, \"sql\": \"SELECT TOP 500 * FROM users WHERE last_active > '2026-01-01'\", \"table\": \"users\", \"time\": \"2026-07-28T02:18:05+08:00\", \"..."
+  },
+  {
+    "time": "2026-08-07T19:55:27+08:00",
+    "tool": "mock_dbaudit",
+    "function": "baseline",
+    "args": {
+      "user": "report_reader",
+      "table": null
+    },
+    "result_preview": "[{\"daily_avg_rows\": 180, \"table\": \"users\", \"unit\": \"rows/day\", \"user\": \"report_reader\", \"window\": \"30d\"}, {\"daily_avg_rows\": 120, \"table\": \"order_summary\", \"unit\": \"rows/day\", \"user\": \"report_reader\", \"window\": \"30d\"}]"
+  },
+  {
+    "time": "2026-08-07T19:55:27+08:00",
+    "tool": "mock_edr",
+    "function": "process_tree",
+    "args": {
+      "host": "report-srv-15",
+      "since": null,
+      "until": null
+    },
+    "result_preview": "[{\"benign\": false, \"command_line\": \"PSEXESVC.exe\", \"event\": 1, \"host\": \"report-srv-15\", \"image\": \"C:\\\\Windows\\\\PSEXESVC.exe\", \"ip\": \"10.2.3.15\", \"parent_pid\": 4, \"pid\": 1902, \"time\": \"2026-07-28T02:09:31+08:00\"}, {\"benign\": false, \"comma..."
+  },
+  {
+    "time": "2026-08-07T19:55:27+08:00",
+    "tool": "mock_siem",
+    "function": "search_events",
+    "args": {
+      "event_id": null,
+      "host": null,
+      "user": null,
+      "since": null,
+      "until": null
+    },
+    "result_preview": "[{\"benign\": false, \"detail\": \"VPN 登录成功，IP 首次出现\", \"event_id\": 4624, \"host\": \"vpn-gateway\", \"logon_type\": 3, \"src_ip\": \"203.0.113.78\", \"time\": \"2026-07-28T02:03:41+08:00\", \"user\": \"zhang-san\"}, {\"benign\": false, \"detail\": \"财务终端访问域控管理共享\", \"..."
+  },
+  {
+    "time": "2026-08-07T19:55:27+08:00",
+    "tool": "mock_intel",
+    "function": "stealer_log",
+    "args": {
+      "account": "zhang-san"
+    },
+    "result_preview": "[{\"benign\": false, \"confidence\": 0.9, \"kind\": \"stealer_log\", \"source\": \"凭证泄露监控（模拟）\", \"time\": \"2026-07-27T09:14:00+08:00\", \"value\": \"RedLine 窃密日志含 zhang-san@corp 的 VPN 凭证与浏览器缓存\"}]"
+  },
+  {
+    "time": "2026-08-07T19:55:58+08:00",
+    "tool": "mock_ndr",
+    "function": "flows",
+    "args": {
+      "src": null,
+      "dst": "203.0.113.78",
+      "port": null,
+      "since": null,
+      "until": null
+    },
+    "result_preview": "[{\"benign\": false, \"bytes\": 1840, \"detail\": \"C2 beacon 回连（周期约 60s）\", \"dst\": \"203.0.113.78\", \"port\": 443, \"protocol\": \"TLS\", \"src\": \"10.2.3.15\", \"time\": \"2026-07-28T02:10:22+08:00\"}]"
+  },
+  {
+    "time": "2026-08-07T19:55:58+08:00",
+    "tool": "mock_ndr",
+    "function": "flows",
+    "args": {
+      "src": null,
+      "dst": null,
+      "port": null,
+      "since": null,
+      "until": null
+    },
+    "result_preview": "[{\"benign\": false, \"bytes\": 1240, \"detail\": \"SMB ADMIN$ 探测（短连接）\", \"dst\": \"10.0.0.8\", \"port\": 445, \"protocol\": \"TCP\", \"src\": \"10.20.3.17\", \"time\": \"2026-07-28T02:09:12+08:00\"}, {\"benign\": false, \"bytes\": 8924, \"detail\": \"PsExec 服务写入与执行流量\"..."
+  },
+  {
+    "time": "2026-08-07T19:56:44+08:00",
+    "tool": "mock_ticket",
+    "function": "update_case_status",
+    "args": {
+      "case_id": "CASE-2001",
+      "to": "VERDICT_DONE",
+      "by": "verdict"
+    },
+    "result_preview": "{\"allowed\": false, \"current\": \"VERDICT_PENDING\", \"error\": \"非法状态迁移 VERDICT_PENDING -> VERDICT_DONE\"}"
+  },
+  {
+    "time": "2026-08-07T19:56:46+08:00",
+    "tool": "mock_ticket",
+    "function": "update_case_status",
+    "args": {
+      "case_id": "CASE-2001",
+      "to": "PLANNED",
+      "by": "verdict",
+      "note": "裁决完成：H1 真实攻击成立 confidence 0.90，交 B 线处置"
+    },
+    "result_preview": "{\"allowed\": true, \"status\": \"PLANNED\", \"transition\": {\"by\": \"verdict\", \"case_id\": \"CASE-2001\", \"from\": \"VERDICT_PENDING\", \"note\": \"裁决完成：H1 真实攻击成立 confidence 0.90，交 B 线处置\", \"to\": \"PLANNED\", \"ts\": \"2026-08-07T19:56:46+0800\"}}"
+  },
+  {
+    "time": "2026-08-07T19:57:17+08:00",
+    "tool": "mock_ticket",
+    "function": "update_case_status",
+    "args": {
+      "case_id": "CASE-2001",
+      "to": "PLANNED",
+      "by": "verdict"
+    },
+    "result_preview": "{\"allowed\": false, \"current\": \"PLANNED\", \"error\": \"非法状态迁移 PLANNED -> PLANNED\"}"
+  },
+  {
+    "time": "2026-08-07T19:57:46+08:00",
+    "tool": "mock_ticket",
+    "function": "get_case",
+    "args": {
+      "case_id": "CASE-2001"
+    },
+    "result_preview": "{\"case_id\": \"CASE-2001\", \"status\": \"PLANNED\", \"title\": \"财务终端凭证窃取 → SMB 横向移动 → 只读账号拖库（T1003 → T1021 → T1078）\"}"
+  }
+]

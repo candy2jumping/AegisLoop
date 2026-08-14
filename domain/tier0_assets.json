@@ -1,0 +1,9 @@
+{
+  "description": "最高优先资产表（Tier-0）。影响面闸(blast-radius-guard)命中其中任一资产即自动升人审。换壳时只改这个文件。",
+  "assets": [
+    {"id": "dc-01", "name": "核心域控", "type": "identity", "critical": true},
+    {"id": "db-fin", "name": "财务主库", "type": "database", "critical": true},
+    {"id": "gw-core", "name": "核心支付网关", "type": "gateway", "critical": true},
+    {"id": "auth-svc", "name": "统一认证服务", "type": "service", "critical": true}
+  ]
+}

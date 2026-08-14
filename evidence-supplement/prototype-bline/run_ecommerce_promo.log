@@ -1,0 +1,136 @@
+=== 已加载场景壳: ecommerce_promo（换壳零改动基座）===
+[靶场] 注入攻击=promo_spike，动态生成 3 条告警
+
+--- 阶段 1: leader (dispatch) ---
+  产出: {}
+
+--- 阶段 2: triage (triage) ---
+  产出: {"symptoms": ["error_rate_rise", "latency_spike", "throughput_drop"]}
+
+--- 阶段 3: hunter (forensic) ---
+  产出: {"symptoms": ["error_rate_rise", "latency_spike", "throughput_drop"]}
+
+--- 阶段 4: correlator (correlate) ---
+  产出: {"symptoms": ["error_rate_rise", "latency_spike", "throughput_drop"]}
+
+--- 阶段 5: verdict (verdict) ---
+  产出: {"symptoms": ["error_rate_rise", "latency_spike", "throughput_drop"], "verdict": {"root_cause": "capacity", "confidence": 0.7, "claim_ref": "24d31adab10dd1a1"}}
+
+--- 阶段 6: planner (plan) ---
+  产出: {"symptoms": ["error_rate_rise", "latency_spike", "throughput_drop"], "verdict": {"root_cause": "capacity", "confidence": 0.7, "claim_ref": "24d31adab10dd1a1"}, "plan": {"root_cause": "capacity", "data_leak_risk": false, "actions": [{"type": "scale_out", "target": "web-cluster", "scope": "segment", "risk_level": "L2", "need_human": false, "blast_radius": "segment", "affected": ["segment of web-cluster"], "hits_tier0": false, "treatment": "approval"}], "rollback_point": "snap-before-capacity", "r
+
+--- 阶段 7: executor (execute) ---
+    [人审 soc-lead] 高危动作 scale_out(L2) → 通过(演示)
+  产出: {"symptoms": ["error_rate_rise", "latency_spike", "throughput_drop"], "verdict": {"root_cause": "capacity", "confidence": 0.7, "claim_ref": "24d31adab10dd1a1"}, "plan": {"root_cause": "capacity", "data_leak_risk": false, "actions": [{"type": "scale_out", "target": "web-cluster", "scope": "segment", "risk_level": "L2", "need_human": false, "blast_radius": "segment", "affected": ["segment of web-cluster"], "hits_tier0": false, "treatment": "approval"}], "rollback_point": "snap-before-capacity", "r
+
+--- 阶段 8: closer (close) ---
+  产出: {"symptoms": ["error_rate_rise", "latency_spike", "throughput_drop"], "verdict": {"root_cause": "capacity", "confidence": 0.7, "claim_ref": "24d31adab10dd1a1"}, "plan": {"root_cause": "capacity", "data_leak_risk": false, "actions": [{"type": "scale_out", "target": "web-cluster", "scope": "segment", "risk_level": "L2", "need_human": false, "blast_radius": "segment", "affected": ["segment of web-cluster"], "hits_tier0": false, "treatment": "approval"}], "rollback_point": "snap-before-capacity", "r
+
+=== 评测指标（脚本产出）===
+{
+  "mttr_sec": 0.0,
+  "containment_rate": 1.0,
+  "resolved": true,
+  "actions_total": 1,
+  "actions_done": 1
+}
+
+=== TEL 防篡改账本（审计证据）===
+  #1 24d31adab10dd1a1 <- verdict_claim
+  #2 50a6d27e39e70ce6 <- execution_rollback_point
+  #3 e29eb970427302a0 <- lesson
+
+=== 协同轨迹（谁->谁）===
+  leader -> leader [dispatch]
+  leader -> triage [triage]
+  leader -> hunter [forensic]
+  leader -> correlator [correlate]
+  leader -> verdict [verdict]
+  leader -> planner [plan]
+  leader -> executor [execute]
+  leader -> closer [close]
+
+=== 最终 Case State ===
+{
+  "case_id": "CASE-001",
+  "hypotheses": [
+    {
+      "type": "capacity",
+      "confidence": 0.7
+    }
+  ],
+  "routing": "dispatched: triage→hunter→correlator→verdict→planner→executor→closer",
+  "symptoms": [
+    "error_rate_rise",
+    "latency_spike",
+    "throughput_drop"
+  ],
+  "entities": {
+    "host": [
+      "api-01",
+      "web-01",
+      "web-cluster"
+    ],
+    "actor": [],
+    "ip": [],
+    "profile": {
+      "name": "unknown"
+    }
+  },
+  "evidence": {
+    "evidence_snapshots": [
+      {
+        "hyp_type": "capacity",
+        "ref": "snap-capacity-1"
+      }
+    ],
+    "missing": []
+  },
+  "verdict": {
+    "root_cause": "capacity",
+    "confidence": 0.7,
+    "claim_ref": "24d31adab10dd1a1"
+  },
+  "plan": {
+    "root_cause": "capacity",
+    "data_leak_risk": false,
+    "actions": [
+      {
+        "type": "scale_out",
+        "target": "web-cluster",
+        "scope": "segment",
+        "risk_level": "L2",
+        "need_human": false,
+        "blast_radius": "segment",
+        "affected": [
+          "segment of web-cluster"
+        ],
+        "hits_tier0": false,
+        "treatment": "approval"
+      }
+    ],
+    "rollback_point": "snap-before-capacity",
+    "rollout": "分级处置：L0自动 / L1灰度 / L2审批 / L3只建议 / L4强制人审"
+  },
+  "execution": {
+    "status": "done",
+    "actions": [
+      {
+        "type": "scale_out",
+        "target": "web-cluster",
+        "scope": "segment",
+        "status": "done(Mock网关)",
+        "via": "WAF/API",
+        "risk_level": "L2",
+        "blast": "segment"
+      }
+    ],
+    "compliance_ticket": null,
+    "rollback_tel": "50a6d27e39e70ce6"
+  },
+  "closure": {
+    "resolved": true,
+    "gaps": [],
+    "lesson_ref": "e29eb970427302a0"
+  }
+}

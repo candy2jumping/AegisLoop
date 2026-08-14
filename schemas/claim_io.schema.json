@@ -1,0 +1,4 @@
+{
+  "$comment": "Deprecated as top-level envelope. Use dict_table1.json. claim binding lives inside verdict.claim_ref + tel_ref.",
+  "$ref": "dict_table1.json#/properties/verdict"
+}

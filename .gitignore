@@ -1,0 +1,20 @@
+# ===== 密钥/环境变量（切勿提交真实密钥）=====
+.env
+*.env
+agentteams.env
+agentteams.env.*
+!.env.example
+
+# ===== Python 缓存/编译产物 =====
+__pycache__/
+*.pyc
+
+# ===== 操作系统垃圾文件 =====
+.DS_Store
+Thumbs.db
+
+# ===== 本地临时/打包产物（不进仓库）=====
+提交包/
+_ref_aegis/
+*.zip
+~$*

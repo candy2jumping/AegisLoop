@@ -1,0 +1,126 @@
+{
+  "transport": "http-mock-tool-gateway",
+  "base_url": "http://<TOOL_HOST_REACHABLE_BY_WORKER>:18089",
+  "call_pattern": "POST /tools/{scenario_id}/{tool_name}.{function_name}",
+  "auth": "demo-token（演示；迁移 Higress/MCP 后换 Consumer）",
+  "tools": [
+    {
+      "name": "mock_siem",
+      "kind": "http-mock-adapter",
+      "functions": [
+        "list_alerts",
+        "get_seed_signal",
+        "search_events"
+      ],
+      "future_mcp_mapping": "siem.list_alerts / siem.search_events"
+    },
+    {
+      "name": "mock_edr",
+      "kind": "http-mock-adapter",
+      "functions": [
+        "process_tree",
+        "process_access",
+        "network_connections",
+        "file_events"
+      ],
+      "future_mcp_mapping": "edr.process_tree / edr.process_access / edr.network_connections"
+    },
+    {
+      "name": "mock_ndr",
+      "kind": "http-mock-adapter",
+      "functions": [
+        "flows"
+      ],
+      "future_mcp_mapping": "ndr.flows"
+    },
+    {
+      "name": "mock_ad",
+      "kind": "http-mock-adapter",
+      "functions": [
+        "auth_log",
+        "account_info"
+      ],
+      "future_mcp_mapping": "ad.auth_log / ad.account_info"
+    },
+    {
+      "name": "mock_dbaudit",
+      "kind": "http-mock-adapter",
+      "functions": [
+        "query_log",
+        "baseline"
+      ],
+      "future_mcp_mapping": "database_audit.query_log / database_audit.baseline"
+    },
+    {
+      "name": "mock_intel",
+      "kind": "http-mock-adapter",
+      "functions": [
+        "lookup",
+        "stealer_log",
+        "search_actor_profile",
+        "upsert_profile_index"
+      ],
+      "future_mcp_mapping": "threat_intel.lookup / threat_intel.search_actor_profile / threat_intel.upsert_profile_index"
+    },
+    {
+      "name": "mock_evidence",
+      "kind": "http-mock-adapter",
+      "functions": [
+        "snapshot",
+        "get_receipt",
+        "seal_tel_entry",
+        "export_tel_pack"
+      ],
+      "future_mcp_mapping": "evidence.snapshot / evidence.get_receipt / evidence.seal_tel_entry / evidence.export_tel_pack"
+    },
+    {
+      "name": "mock_probe",
+      "kind": "http-mock-adapter",
+      "functions": [
+        "check_host",
+        "check_account"
+      ],
+      "future_mcp_mapping": "probe.check_host / probe.check_account"
+    },
+    {
+      "name": "mock_knowledge",
+      "kind": "http-mock-adapter",
+      "functions": [
+        "write_lesson",
+        "refresh_rag_index",
+        "get_lesson"
+      ],
+      "future_mcp_mapping": "knowledge.write_lesson / knowledge.refresh_rag_index / knowledge.get_lesson"
+    },
+    {
+      "name": "mock_contain",
+      "kind": "http-mock-adapter",
+      "functions": [
+        "isolate_host",
+        "block_ip",
+        "block_domain",
+        "disable_account"
+      ],
+      "future_mcp_mapping": "contain.isolate_host / contain.block_ip / contain.block_domain / contain.disable_account"
+    },
+    {
+      "name": "mock_ticket",
+      "kind": "http-mock-adapter",
+      "functions": [
+        "create_case",
+        "get_case",
+        "update_case_status",
+        "create_followup"
+      ],
+      "future_mcp_mapping": "ticket.case / ticket.create_followup"
+    },
+    {
+      "name": "mock_udb",
+      "kind": "http-mock-adapter",
+      "functions": [
+        "sanitize"
+      ],
+      "future_mcp_mapping": "udb.sanitize（UDB 边界清洗）"
+    }
+  ]
+}

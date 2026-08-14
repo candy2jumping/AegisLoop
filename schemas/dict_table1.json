@@ -1,0 +1,154 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://aegisloop.local/schemas/dict_table1.json",
+  "title": "Table1 Unified Dictionary — aligned with contracts/ALIGNMENT.md",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    "case_id": { "type": "string" },
+    "symptoms": { "type": "array" },
+    "entities": { "type": "object" },
+    "hypotheses": { "type": "array" },
+    "verdict": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "root_cause",
+        "confidence",
+        "claim_ref",
+        "claim",
+        "grade",
+        "hypotheses",
+        "evidence",
+        "contradicting_evidence",
+        "gaps",
+        "provenance"
+      ],
+      "properties": {
+        "root_cause": {
+          "type": "string",
+          "enum": ["attack", "misop", "drill", "capacity", "unknown"]
+        },
+        "confidence": { "type": "number" },
+        "claim_ref": { "type": "string" },
+        "claim": { "type": "string" },
+        "grade": {
+          "type": "string",
+          "enum": ["trusted", "suspicious", "untrusted"]
+        },
+        "hypotheses": { "type": "array" },
+        "evidence": { "type": "array" },
+        "contradicting_evidence": { "type": "array" },
+        "gaps": { "type": "array" },
+        "provenance": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["agent", "ts"],
+          "properties": {
+            "agent": { "type": "string" },
+            "ts": { "type": "string" }
+          }
+        }
+      }
+    },
+    "plan": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["actions", "rollback_point"],
+      "properties": {
+        "root_cause": { "type": ["string", "null"] },
+        "data_leak_risk": { "type": "boolean" },
+        "plan_confidence": { "type": "number" },
+        "rollout": { "type": "string" },
+        "gaps": { "type": "array" },
+        "actions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "required": [
+              "type",
+              "target",
+              "scope",
+              "risk_level",
+              "need_human",
+              "blast_radius",
+              "hits_tier0",
+              "treatment"
+            ],
+            "additionalProperties": false,
+            "properties": {
+              "type": { "type": "string" },
+              "target": { "type": "string" },
+              "scope": { "type": "string" },
+              "risk_level": { "type": "string" },
+              "need_human": { "type": "boolean" },
+              "blast_radius": { "type": "string" },
+              "hits_tier0": { "type": "boolean" },
+              "treatment": {
+                "type": "string",
+                "enum": ["auto", "gray", "approval", "suggest"]
+              },
+              "rollback": { "type": "string" },
+              "order": { "type": "integer" }
+            }
+          }
+        },
+        "rollback_point": { "type": ["string", "null"] }
+      }
+    },
+    "execution": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["status", "tel_ref"],
+      "properties": {
+        "status": {
+          "type": "string",
+          "enum": [
+            "executed",
+            "partial",
+            "blocked_pending_approval",
+            "verified",
+            "needs_attention",
+            "approval_pending",
+            "unverified"
+          ]
+        },
+        "tel_ref": { "type": "string" },
+        "actions": {
+          "type": "array",
+          "items": {
+            "type": "object",
+            "additionalProperties": false,
+            "required": ["type", "target", "status"],
+            "properties": {
+              "type": { "type": "string" },
+              "target": { "type": "string" },
+              "status": {
+                "type": "string",
+                "enum": [
+                  "done",
+                  "done(fallback)",
+                  "suggested_only",
+                  "rejected_by_human",
+                  "blocked_pending_approval"
+                ]
+              }
+            }
+          }
+        },
+        "compliance_ticket": { "type": ["string", "null"] },
+        "rollback_tel": { "type": ["string", "null"] }
+      }
+    },
+    "closure": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["resolved"],
+      "properties": {
+        "resolved": { "type": "boolean" },
+        "lesson_ref": { "type": ["string", "null"] }
+      }
+    },
+    "tel_ref": { "type": "string" }
+  }
+}

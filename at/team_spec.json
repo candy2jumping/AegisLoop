@@ -1,0 +1,170 @@
+{
+  "team": {
+    "name": "aegisloop-soc",
+    "version": "0.1.0",
+    "description": "AegisLoop SOC lateral-movement containment team for GOAI Agent Infra.",
+    "owner_control_plane": "C",
+    "primary_runtime": "agentteams-real-llm",
+    "worker_runtime": "qwenpow(copow/QwenPaw)",
+    "creation_policy": {
+      "mode": "serial",
+      "business_workers_order": [
+        "triage",
+        "hunter",
+        "correlator",
+        "verdict",
+        "planner",
+        "executor",
+        "closer"
+      ],
+      "rule": "Create next Worker only after previous is healthy. During Team creation, manager MUST create independent Worker aegis-leader as TeamLeader. Never designate a business Worker as leader."
+    },
+    "team_leader": {
+      "id": "aegis_leader",
+      "name": "aegis-leader",
+      "creation": "created by manager during Team creation",
+      "owner": "C"
+    },
+    "human": {
+      "id": "soc_lead",
+      "name": "soc-lead",
+      "role": "L2/L4 and Tier-0 approval; L3 suggest_only; lesson activation"
+    },
+    "communication": {
+      "peerMentions": {
+        "investigation_open": [
+          "triage",
+          "hunter",
+          "correlator",
+          "verdict",
+          "planner",
+          "closer",
+          "aegis-leader",
+          "soc-lead"
+        ],
+        "executor_mention_policy": "Only aegis-leader may @executor after arg-risk-guard and blast-radius-guard pass (or soc-lead approve for L2/L4)."
+      },
+      "write_zone": {
+        "writer": "executor",
+        "forbidden": "Business workers must not mention executor directly."
+      }
+    },
+    "case_state_machine": [
+      "NEW",
+      "TRIAGED",
+      "INVESTIGATING",
+      "VERDICT_PENDING",
+      "PLANNED",
+      "AWAITING_APPROVAL",
+      "EXECUTING",
+      "VERIFYING",
+      "SETTLE",
+      "CLOSED"
+    ],
+    "exception_states": ["ESCALATED", "ABANDONED", "DEGRADED"],
+    "risk_policy": {
+      "auto_execute": ["L0", "L1"],
+      "approval_required": ["L2", "L4"],
+      "suggest_only": ["L3"],
+      "tier0": "force_human_review",
+      "tier0_field": "hits_tier0",
+      "alignment": "contracts/ALIGNMENT.md"
+    },
+    "task_submission_policy": {
+      "room": "Matrix room whose name starts with Team and matches aegisloop-soc",
+      "mention": "@aegis-leader",
+      "rule": "Paste one incident per message; wait for report before next."
+    },
+    "tool_gateway": {
+      "transport": "http",
+      "base_url": "http://<TOOL_HOST_REACHABLE_BY_WORKER>:18089",
+      "call_pattern": "POST /tools/{scenario_id}/{tool_name}.{function_name}",
+      "catalog": "tools/tool_catalog.json"
+    },
+    "schemas": {
+      "claim_io": "schemas/dict_table1.json",
+      "lesson": "knowledge/lessons/LESSON.contract.md",
+      "alignment": "contracts/ALIGNMENT.md"
+    }
+  },
+  "agents_owned_by_a": [
+    {
+      "id": "triage",
+      "name": "triage",
+      "local_spec_file": "agents/triage/Agent.md",
+      "skills": ["case-cluster", "udb-sanitize"]
+    },
+    {
+      "id": "hunter",
+      "name": "hunter",
+      "local_spec_file": "agents/hunter/Agent.md",
+      "skills": ["forensic-snapshot", "udb-sanitize"]
+    },
+    {
+      "id": "correlator",
+      "name": "correlator",
+      "local_spec_file": "agents/correlator/Agent.md",
+      "skills": ["entity-correlate", "actor-profile-rag", "udb-sanitize"]
+    },
+    {
+      "id": "verdict",
+      "name": "verdict",
+      "local_spec_file": "agents/verdict/Agent.md",
+      "skills": ["hypothesis-verdict", "claim-provenance", "actor-profile-rag", "udb-sanitize"]
+    }
+  ],
+  "agents_owned_by_b": [
+    {
+      "id": "planner",
+      "name": "planner",
+      "local_spec_file": "agents/planner/Agent.md",
+      "skills": ["containment-plan", "arg-risk-guard", "blast-radius-guard"]
+    },
+    {
+      "id": "executor",
+      "name": "executor",
+      "local_spec_file": "agents/executor/Agent.md",
+      "skills": ["arg-risk-guard", "blast-radius-guard", "compliance-notify"]
+    }
+  ],
+  "agents_owned_by_c": [
+    {
+      "id": "aegis_leader",
+      "name": "aegis-leader",
+      "local_spec_file": "agents/aegis-leader/Agent.md",
+      "skills": ["arg-risk-guard", "blast-radius-guard", "claim-provenance"]
+    },
+    {
+      "id": "closer",
+      "name": "closer",
+      "local_spec_file": "agents/closer/Agent.md",
+      "skills": ["claim-provenance", "residual-verify", "lesson-settle"]
+    },
+    {
+      "id": "soc_lead",
+      "name": "soc-lead",
+      "local_spec_file": "agents/soc-lead/Agent.md",
+      "type": "human"
+    }
+  ],
+  "skills_owned_by_c": [
+    "claim-provenance",
+    "actor-profile-rag",
+    "residual-verify",
+    "lesson-settle"
+  ],
+  "workflow": [
+    {"step": 1, "agent": "aegis-leader", "task": "receive_and_dispatch"},
+    {"step": 2, "agent": "triage", "task": "cluster_and_udb", "owner": "A"},
+    {"step": 3, "agent": "hunter", "task": "forensic_snapshot", "owner": "A"},
+    {"step": 4, "agent": "correlator", "task": "entity_correlate_and_profile_rag", "owner": "A", "uses_c_skill": "actor-profile-rag"},
+    {"step": 5, "agent": "verdict", "task": "hypothesis_verdict_and_claim", "owner": "A", "uses_c_skill": ["actor-profile-rag", "claim-provenance"]},
+    {"step": 6, "agent": "planner", "task": "containment_plan", "owner": "B"},
+    {"step": 7, "agent": "aegis-leader", "task": "arg_blast_gate_and_route"},
+    {"step": 8, "agent": "aegis-leader", "task": "await_soc_lead_if_need_human", "note": "need_human/hits_tier0 → AWAITING_APPROVAL; L0/L1 may skip"},
+    {"step": 9, "agent": "soc-lead", "task": "approve_l2_l4_tier0", "type": "human", "optional_if": "auto_execute_only"},
+    {"step": 10, "agent": "executor", "task": "write_actions", "owner": "B", "state_to": "EXECUTING"},
+    {"step": 11, "agent": "closer", "task": "residual_verify_and_lesson_settle", "states": ["VERIFYING", "SETTLE", "CLOSED"]},
+    {"step": 12, "agent": "aegis-leader", "task": "compose_final_report"}
+  ]
+}

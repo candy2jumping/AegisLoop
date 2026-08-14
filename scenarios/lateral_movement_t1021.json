@@ -1,0 +1,158 @@
+{
+  "id": "lateral_movement_t1021",
+  "version": "1.0.0",
+  "incident_id": "CASE-2001",
+  "title": "财务终端凭证窃取 → SMB 横向移动 → 只读账号拖库（T1003 → T1021 → T1078）",
+  "organization": {
+    "name": "Aegis 演示科技有限公司（虚构）",
+    "environment": "Windows AD 域 + 财务/报表/数据库三网段 + VPN 远程接入",
+    "timezone": "Asia/Shanghai"
+  },
+  "seed_signal": {
+    "time": "2026-07-28T09:01:00+08:00",
+    "source": "mock_siem.correlation",
+    "text": "弱信号：财务终端 10.20.3.17 在 02:09 向域控 10.0.0.8 发起 SMB 连接（ADMIN$），且该主机 02:06 出现针对 lsass.exe 的异常进程访问。单条不够立案，跨源同时出现则建议升格调查。",
+    "severity": "medium",
+    "tags": ["finance_host_smb_to_dc", "lsass_access"]
+  },
+  "entities": {
+    "hosts": [
+      { "name": "finance-ws-17", "ip": "10.20.3.17", "role": "财务终端（Windows 10，受管）", "owner": "zhang-san" },
+      { "name": "dc-01", "ip": "10.0.0.8", "role": "域控制器" },
+      { "name": "report-srv-15", "ip": "10.2.3.15", "role": "报表服务器（Windows Server 2019）" },
+      { "name": "db-orders", "ip": "10.5.0.20", "role": "orders 业务数据库（SQL Server）" }
+    ],
+    "users": [
+      { "account": "zhang-san", "real_name": "张山", "dept": "财务部", "permissions": "VPN + 财务终端本地管理员；在 report-srv-15 上拥有本地管理员权限（最小权限缺陷）" },
+      { "account": "report_reader", "real_name": "报表只读应用账号", "dept": "系统", "permissions": "orders 库 users 表只读，历史日均查询约 180 行" }
+    ],
+    "ips": [
+      { "ip": "203.0.113.78", "role": "外部代理 / C2（威胁情报命中，模拟数据）" },
+      { "ip": "10.200.0.15", "role": "VPN 客户端池地址（本次登录分配）" }
+    ]
+  },
+  "baselines": [
+    { "user": "report_reader", "table": "users", "daily_avg_rows": 180, "window": "30d", "unit": "rows/day" },
+    { "user": "report_reader", "table": "order_summary", "daily_avg_rows": 120, "window": "30d", "unit": "rows/day" }
+  ],
+  "attack_chain": [
+    { "t": "2026-07-27T09:14:00+08:00", "stage": "凭据采集（外部）", "technique": "T1003 前导：凭证泄露", "description": "zhang-san 的个人电脑（非受管）感染 RedLine 窃密木马，VPN 凭证与浏览器缓存被窃，流入暗网凭证市场。", "evidence_refs": ["intel:stealer_log_zhang_san"] },
+    { "t": "2026-07-28T02:03:41+08:00", "stage": "初始访问", "technique": "T1078.004 有效账号·VPN", "description": "攻击者用窃取的 zhang-san 凭证从 203.0.113.78 登录公司 VPN。IP 首次出现、非惯用地区，未触发异地登录告警（该账号常出差）。", "evidence_refs": ["ad:auth_vpn_020341", "siem:4624_vpn_020341"] },
+    { "t": "2026-07-28T02:04:12+08:00", "stage": "进入内网", "technique": "T1021.001 RDP", "description": "从 VPN 池地址 10.200.0.15 RDP 登录财务终端 10.20.3.17（zhang-san 为其本地管理员）。", "evidence_refs": ["ad:4624_rdp_020412", "edr:rdp_logon_020412"] },
+    { "t": "2026-07-28T02:06:07+08:00", "stage": "凭据窃取", "technique": "T1003.001 LSASS 内存转储", "description": "在财务终端执行 procdump64.exe -ma lsass.exe，导出 lsass.dmp 后快速删除；获取域账号凭据。", "evidence_refs": ["edr:proc_procdump_020607", "edr:access_lsass_020608"] },
+    { "t": "2026-07-28T02:07:55+08:00", "stage": "持久化", "technique": "T1053.005 计划任务", "description": "创建计划任务 WindowsUpdateCheck，指向 C:\\ProgramData\\updater.exe（伪装系统更新）。", "evidence_refs": ["edr:proc_schtasks_020755", "siem:4698_020755"] },
+    { "t": "2026-07-28T02:09:12+08:00", "stage": "横向移动（探测）", "technique": "T1021.002 SMB/ADMIN$", "description": "财务终端向域控 dc-01 发起 SMB ADMIN$ 连接（枚举/探测，短连接）。", "evidence_refs": ["siem:5140_020912", "ndr:flow_dc_020912"] },
+    { "t": "2026-07-28T02:09:31+08:00", "stage": "横向移动（执行）", "technique": "T1021.002 PsExec", "description": "使用 zhang-san 的本地管理员权限经 PsExec 在报表服务器 report-srv-15 创建 PSEXESVC 服务并执行命令。", "evidence_refs": ["edr:proc_psexec_020931", "siem:7045_020931", "ndr:flow_report_020931", "ad:4672_020931"] },
+    { "t": "2026-07-28T02:10:22+08:00", "stage": "命令与控制", "technique": "T1071.001 HTTPS C2", "description": "报表服务器上的 updater.exe 向 203.0.113.78:443 发起 TLS 回连（C2 beacon），DNS 解析 updater-cdn.example.net。", "evidence_refs": ["edr:net_c2_021022", "ndr:flow_c2_021022", "intel:ioc_c2_ip"] },
+    { "t": "2026-07-28T02:18:05+08:00", "stage": "数据收集（拖库）", "technique": "T1078 有效账号滥用", "description": "攻击者使用合法只读账号 report_reader 从 report-srv-15 对 orders.users 表批量查询：单次 500 行、间隔 3 秒，累计至 08:35 共 3,600,000 行（历史日均 180 行）。", "evidence_refs": ["dbaudit:query_users_021805", "ndr:flow_db_021805"] },
+    { "t": "2026-07-28T08:35:00+08:00", "stage": "数据收集（结束）", "technique": "T1078", "description": "批量查询停止；数据样本经 C2 外传（暗网样本兜售）。", "evidence_refs": ["dbaudit:query_end_083500"] },
+    { "t": "2026-07-28T08:42:20+08:00", "stage": "撤离", "technique": "T1078.004", "description": "VPN 会话断开；删除部分临时文件并清理操作痕迹。", "evidence_refs": ["ad:auth_vpn_disconnect_084220"] }
+  ],
+  "data_sources": {
+    "siem": [
+      { "time": "2026-07-28T02:03:41+08:00", "event_id": 4624, "logon_type": 3, "user": "zhang-san", "src_ip": "203.0.113.78", "host": "vpn-gateway", "detail": "VPN 登录成功，IP 首次出现", "benign": false },
+      { "time": "2026-07-28T02:09:12+08:00", "event_id": 5140, "user": "zhang-san", "src": "10.20.3.17", "dst": "10.0.0.8", "share": "ADMIN$", "detail": "财务终端访问域控管理共享", "benign": false },
+      { "time": "2026-07-28T02:09:31+08:00", "event_id": 7045, "host": "report-srv-15", "service": "PSEXESVC", "image": "C:\\Windows\\PSEXESVC.exe", "detail": "新服务安装（PsExec 特征）", "benign": false },
+      { "time": "2026-07-28T02:10:22+08:00", "event_id": 4624, "logon_type": 3, "user": "zhang-san", "src_ip": "10.20.3.17", "host": "report-srv-15", "detail": "网络登录（PsExec 会话）", "benign": false },
+      { "time": "2026-07-28T02:07:55+08:00", "event_id": 4698, "host": "finance-ws-17", "task": "WindowsUpdateCheck", "detail": "计划任务创建（伪装系统更新）", "benign": false },
+      { "time": "2026-07-28T09:01:00+08:00", "event_id": 0, "correlation": "finance_host_smb_to_dc + lsass_access", "severity": "medium", "detail": "跨源关联弱信号（种子告警）", "benign": false },
+      { "time": "2026-07-28T08:00:12+08:00", "event_id": 4624, "logon_type": 3, "user": "wang-wu", "src_ip": "10.20.1.5", "host": "vpn-gateway", "detail": "IT 运维正常远程登录", "benign": true },
+      { "time": "2026-07-28T03:14:00+08:00", "event_id": 4688, "user": "svc-backup", "host": "report-srv-15", "detail": "备份任务例行进程", "benign": true }
+    ],
+    "edr": [
+      { "time": "2026-07-28T02:04:12+08:00", "event": 1, "host": "finance-ws-17", "pid": 4120, "parent_pid": 388, "image": "C:\\Windows\\System32\\svchost.exe", "command_line": "svchost.exe -k TermService", "detail": "RDP 会话建立", "benign": true },
+      { "time": "2026-07-28T02:06:07+08:00", "event": 1, "host": "finance-ws-17", "pid": 6204, "parent_pid": 2312, "image": "C:\\Users\\zhang-san\\Downloads\\procdump64.exe", "command_line": "procdump64.exe -ma lsass.exe", "benign": false },
+      { "time": "2026-07-28T02:06:08+08:00", "event": 10, "host": "finance-ws-17", "source_image": "C:\\Users\\zhang-san\\Downloads\\procdump64.exe", "target_image": "C:\\Windows\\System32\\lsass.exe", "granted_access": "0x1F0FFF", "detail": "LSASS 全权限访问（凭据转储特征，对齐 MITRE DET0363 / Sigma sysmon_lsass_memdump）", "benign": false },
+      { "time": "2026-07-28T02:06:40+08:00", "event": 11, "host": "finance-ws-17", "image": "C:\\Users\\zhang-san\\AppData\\Local\\Temp\\lsass.dmp", "detail": "转储文件创建后约 33 秒被删除", "benign": false },
+      { "time": "2026-07-28T02:07:55+08:00", "event": 1, "host": "finance-ws-17", "pid": 7150, "parent_pid": 6204, "image": "C:\\Windows\\System32\\schtasks.exe", "command_line": "schtasks.exe /create /tn WindowsUpdateCheck /tr C:\\ProgramData\\updater.exe /sc onlogon", "benign": false },
+      { "time": "2026-07-28T02:09:28+08:00", "event": 3, "host": "finance-ws-17", "src": "10.20.3.17", "dst": "10.0.0.8", "port": 445, "protocol": "TCP", "benign": false },
+      { "time": "2026-07-28T02:09:31+08:00", "event": 1, "host": "report-srv-15", "pid": 1902, "parent_pid": 4, "image": "C:\\Windows\\PSEXESVC.exe", "command_line": "PSEXESVC.exe", "benign": false },
+      { "time": "2026-07-28T02:10:20+08:00", "event": 1, "host": "report-srv-15", "pid": 3344, "parent_pid": 1902, "image": "C:\\ProgramData\\updater.exe", "command_line": "updater.exe", "benign": false },
+      { "time": "2026-07-28T02:10:22+08:00", "event": 3, "host": "report-srv-15", "src": "10.2.3.15", "dst": "203.0.113.78", "port": 443, "protocol": "TCP", "benign": false },
+      { "time": "2026-07-28T02:18:05+08:00", "event": 1, "host": "report-srv-15", "pid": 4501, "parent_pid": 3344, "image": "C:\\Program Files\\Microsoft SQL Server\\Client SDK\\ODBC\\Tools\\Binn\\SQLCMD.EXE", "command_line": "sqlcmd.exe -S db-orders -U report_reader -d orders -Q \"SELECT TOP 500 * FROM users WHERE ...\"", "benign": false },
+      { "time": "2026-07-28T03:00:00+08:00", "event": 1, "host": "report-srv-15", "pid": 512, "parent_pid": 4, "image": "C:\\Windows\\System32\\svchost.exe", "command_line": "svchost.exe -k defragsvc", "benign": true }
+    ],
+    "ndr": [
+      { "time": "2026-07-28T02:09:12+08:00", "src": "10.20.3.17", "dst": "10.0.0.8", "port": 445, "protocol": "TCP", "bytes": 1240, "detail": "SMB ADMIN$ 探测（短连接）", "benign": false },
+      { "time": "2026-07-28T02:09:31+08:00", "src": "10.20.3.17", "dst": "10.2.3.15", "port": 445, "protocol": "TCP", "bytes": 8924, "detail": "PsExec 服务写入与执行流量", "benign": false },
+      { "time": "2026-07-28T02:10:22+08:00", "src": "10.2.3.15", "dst": "203.0.113.78", "port": 443, "protocol": "TLS", "bytes": 1840, "detail": "C2 beacon 回连（周期约 60s）", "benign": false },
+      { "time": "2026-07-28T02:18:05+08:00", "src": "10.2.3.15", "dst": "10.5.0.20", "port": 1433, "protocol": "TCP", "bytes": 9670000000, "detail": "SQL 批量查询流量（02:18–08:35 累计约 9.2GB）", "benign": false },
+      { "time": "2026-07-28T07:30:00+08:00", "src": "10.20.1.5", "dst": "10.2.3.15", "port": 3389, "protocol": "TCP", "bytes": 3210000, "detail": "IT 运维例行远程维护", "benign": true }
+    ],
+    "ad": [
+      { "time": "2026-07-28T02:03:41+08:00", "event_id": 4624, "logon_type": 3, "user": "zhang-san", "src_ip": "203.0.113.78", "detail": "VPN 认证成功，IP 首次出现", "benign": false },
+      { "time": "2026-07-28T02:04:12+08:00", "event_id": 4624, "logon_type": 10, "user": "zhang-san", "src_ip": "10.200.0.15", "host": "finance-ws-17", "detail": "RDP 登录财务终端", "benign": false },
+      { "time": "2026-07-28T02:09:31+08:00", "event_id": 4672, "user": "zhang-san", "host": "report-srv-15", "detail": "授予特殊权限（PsExec 以管理员身份执行）", "benign": false },
+      { "time": "2026-07-28T08:42:20+08:00", "event_id": 0, "user": "zhang-san", "detail": "VPN 会话断开", "benign": false },
+      { "time": "2026-07-28T09:02:00+08:00", "event_id": 4624, "logon_type": 3, "user": "li-si", "src_ip": "10.20.2.8", "detail": "正常业务账号登录", "benign": true }
+    ],
+    "dbaudit": [
+      { "time": "2026-07-28T02:18:05+08:00", "client_ip": "10.2.3.15", "user": "report_reader", "db": "orders", "table": "users", "sql": "SELECT TOP 500 * FROM users WHERE last_active > '2026-01-01'", "rows": 500, "detail": "批量查询开始：单次 500 行、间隔 3 秒", "benign": false },
+      { "time": "2026-07-28T04:00:00+08:00", "client_ip": "10.2.3.15", "user": "report_reader", "db": "orders", "table": "users", "rows": 500, "detail": "持续批量查询（累计约 120 万行）", "benign": false },
+      { "time": "2026-07-28T08:35:00+08:00", "client_ip": "10.2.3.15", "user": "report_reader", "db": "orders", "table": "users", "rows": 0, "detail": "批量查询停止，累计 3,600,000 行（历史日均 180 行，偏离约 2 万倍）", "benign": false },
+      { "time": "2026-07-28T09:30:00+08:00", "client_ip": "10.2.3.15", "user": "report_reader", "db": "orders", "table": "order_summary", "rows": 120, "detail": "正常报表任务", "benign": true }
+    ],
+    "intel": [
+      { "time": "2026-07-28T09:05:00+08:00", "kind": "ioc_ip", "value": "203.0.113.78", "tags": ["proxy", "c2"], "confidence": 0.87, "source": "模拟威胁情报（参照真实 C2/代理基础设施）", "benign": false },
+      { "time": "2026-07-28T09:05:00+08:00", "kind": "ioc_domain", "value": "updater-cdn.example.net", "tags": ["malicious_domain", "c2_dns"], "confidence": 0.91, "source": "模拟威胁情报", "benign": false },
+      { "time": "2026-07-27T09:14:00+08:00", "kind": "stealer_log", "value": "RedLine 窃密日志含 zhang-san@corp 的 VPN 凭证与浏览器缓存", "confidence": 0.9, "source": "凭证泄露监控（模拟）", "benign": false },
+      { "time": "2026-07-28T09:05:00+08:00", "kind": "file_hash", "value": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855", "tags": ["updater.exe"], "confidence": 0.8, "source": "样本分析（模拟）", "benign": false }
+    ],
+    "evidence": [
+      { "ref": "edr:proc_procdump_020607", "type": "process_create", "host": "finance-ws-17", "hash": "sha256:e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855" },
+      { "ref": "edr:access_lsass_020608", "type": "process_access", "host": "finance-ws-17", "granted_access": "0x1F0FFF" },
+      { "ref": "edr:proc_schtasks_020755", "type": "scheduled_task", "host": "finance-ws-17", "task": "WindowsUpdateCheck" },
+      { "ref": "edr:proc_psexec_020931", "type": "service_install", "host": "report-srv-15", "service": "PSEXESVC" },
+      { "ref": "dbaudit:query_users_021805", "type": "db_query", "host": "report-srv-15", "user": "report_reader", "rows": 3600000 },
+      { "ref": "evidence:lsass_dmp_deleted", "type": "file_deleted", "host": "finance-ws-17", "note": "lsass.dmp 已删除，无法直接取证（数据缺口）" }
+    ]
+  },
+  "expected": {
+    "verdict": {
+      "claim": "外部入侵：凭证窃取（T1003）→ 横向移动（T1021）→ 身份滥用拖库（T1078）",
+      "hypotheses": [
+        { "id": "H1", "desc": "真实外部攻击（infostealer 凭证 → VPN → 横向移动 → 拖库）", "confidence": 0.87 },
+        { "id": "H2", "desc": "运维脚本误操作（批量查询为合法报表任务）", "confidence": 0.09 },
+        { "id": "H3", "desc": "红队/演练流量", "confidence": 0.04 }
+      ],
+      "contradicting_evidence": [],
+      "gaps": [
+        "report-srv-15 无进程级网络日志，无法确认横向移动段是否触及其他数据库",
+        "lsass.dmp 已删除，无法直接取证，仅凭 EDR 访问事件",
+        "zhang-san 在 report-srv-15 的本地管理员权限来源未确认"
+      ]
+    },
+    "containment": {
+      "L0_L1_auto_gray": ["低危旁证探测（非 isolate）"],
+      "L2_approval": ["防火墙封禁 203.0.113.78（block_ip）", "禁用 zhang-san VPN 账号", "禁用 report_reader 数据库账号"],
+      "L3_suggest": ["block_domain updater-cdn.example.net（仅建议，不执行）"],
+      "L4_approval": ["隔离 finance-ws-17（isolate_host，强制人审；Tier-0 命中亦升 L4）"],
+      "compliance": ["若确认 360 万条个人信息泄露，触发 compliance-notify（非 plan.action.type）"],
+      "rollback_points": ["解封 IP 203.0.113.78", "解冻账号 zhang-san / report_reader", "恢复 finance-ws-17 网络策略"]
+    },
+    "lesson": {
+      "lesson_id": "LESSON-2001",
+      "trigger": "finance_host_smb_to_dc + lsass_access",
+      "attack": ["T1003", "T1021", "T1078"],
+      "rule_suggestion": "同主机凭据访问 + 域控 SMB → 自动升格 Case 并优先拉取 EDR 进程树；单账号单表查询量偏离历史基线 10 倍以上 → 触发异常告警",
+      "containment_hint": "L4 isolate_host (soc-lead); L2 block_ip / disable_account (soc-lead); L3 block_domain suggest_only",
+      "status": "proposed",
+      "source_case": "CASE-2001",
+      "trace_id": "tr_case2001_demo"
+    }
+  },
+  "contracts": {
+    "triage": ["mock_siem.list_alerts", "mock_siem.get_seed_signal", "mock_ticket.create_case"],
+    "hunter": ["mock_edr.process_tree(host)", "mock_edr.network_connections(host)", "mock_evidence.snapshot(refs)"],
+    "correlator": ["mock_ndr.flows(time_window)", "mock_ad.auth_log(user|ip)", "mock_intel.lookup(ip|domain)", "mock_dbaudit.query_log(user)"],
+    "verdict": ["只读补充查询", "ECP 输出 claim/confidence/evidence/contradicting/gaps"]
+  },
+  "realism_notes": [
+    "初始访问：参照 Change Healthcare / Zestix 事件——infostealer 凭证进入 VPN，无 MFA（Hudson Rock 分析）",
+    "T1003：LSASS 全权限访问 0x1F0FFF + procdump 命令行，对齐 MITRE DET0363 与 Sigma sysmon_lsass_memdump",
+    "横向移动：PsExec 服务安装（Event 7045）+ ADMIN$ 共享（Event 5140）+ 网络登录（Event 4624 Type 3）为真实事件组合",
+    "持久化：计划任务 Event 4698 + 伪装系统更新路径，对应 T1053.005",
+    "数据收集：合法只读账号拖库偏离基线，对齐 Snowflake/凭证滥用类事件",
+    "C2/代理 IP、域名、哈希均为模拟占位值，避免指向真实基础设施"
+  ]
+}
